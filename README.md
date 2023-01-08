@@ -1,5 +1,5 @@
 # Coupon Management System
-the core of the system using Spring Boot framework, Hibernate, JPA
+The core of the system: using Spring Boot framework, Hibernate, JPA
 
 
 ## Instructions
