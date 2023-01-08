@@ -2,8 +2,7 @@
 the core of the system using Spring Boot framework, Hibernate, JPA
 
 
-# Instructions
-
+## Instructions
 
 # Eclipse
 
