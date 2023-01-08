@@ -2,9 +2,11 @@
 the core of the system using Spring Boot framework, Hibernate, JPA
 
 
-## Instructions
+# Instructions
 
-#Eclipse
+
+# Eclipse
+
 1.Open Eclipse and select File > Import.
 2.In the import wizard, choose Maven > Existing Maven Projects, then click Next.
 3.Select the java-maven-starter-project as the project root directory.
