@@ -1,8 +1,8 @@
-#Coupon Management System
+# Coupon Management System
 the core of the system using Spring Boot framework, Hibernate, JPA
 
 
-##Instructions
+## Instructions
 
 #Eclipse
 1.Open Eclipse and select File > Import.
