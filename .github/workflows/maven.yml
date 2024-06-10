@@ -43,9 +43,11 @@ jobs:
           AWS_ACCESS_KEY_ID: ${{ secrets.AWS_ACCESS_KEY_ID }}
           AWS_SECRET_ACCESS_KEY: ${{ secrets.AWS_SECRET_ACCESS_KEY }}
           AWS_REGION: ${{ secrets.AWS_REGION }}
-          DB_URL: jdbc:mysql://127.0.0.1:3306/coupons__system?allowPublicKeyRetrieval=true&useSSL=false&serverTimezone=UTC
-          DB_USERNAME: root
-          DB_PASSWORD: 1Osensinki*
+          RDS_ENDPOINT: ${{ secrets.RDS_ENDPOINT }}
+          PORT: ${{ secrets.RDS_ENDPOINT }}
+          DATABASE_NAME: ${{ secrets.DATABASE_NAME }}
+          DB_USERNAME: ${{ secrets.DB_USERNAME }}
+          DB_PASSWORD: ${{ secrets.DB_PASSWORD }}
 
         run: |
           aws cloudfront create-invalidation --distribution-id ${{ secrets.CLOUDFRONT_DISTRIBUTION_ID }} --paths "/*"
