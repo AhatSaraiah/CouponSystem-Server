@@ -44,7 +44,7 @@ jobs:
           AWS_SECRET_ACCESS_KEY: ${{ secrets.AWS_SECRET_ACCESS_KEY }}
           AWS_REGION: ${{ secrets.AWS_REGION }}
           RDS_ENDPOINT: ${{ secrets.RDS_ENDPOINT }}
-          PORT: ${{ secrets.RDS_ENDPOINT }}
+          PORT: ${{ secrets.PORT }}
           DATABASE_NAME: ${{ secrets.DATABASE_NAME }}
           DB_USERNAME: ${{ secrets.DB_USERNAME }}
           DB_PASSWORD: ${{ secrets.DB_PASSWORD }}
