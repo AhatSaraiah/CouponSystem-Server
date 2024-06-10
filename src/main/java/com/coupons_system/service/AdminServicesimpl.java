@@ -3,7 +3,6 @@ package com.coupons_system.service;
 import java.util.List;
 import java.util.Set;
 
-import javax.management.loading.PrivateClassLoader;
 
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.stereotype.Service;
@@ -40,15 +39,15 @@ public class AdminServicesimpl extends ClientServicesimpl implements  AdminServi
 	@Override
 	public boolean login(String email, String password) {
 		try {
-			if (email!="admin@admin.com" || password!="admin") 
+	        if (!email.equals("admin@admin.com") || !password.equals("admin")) {
 				throw new MyException("The email or password  are not correct");
-			else {
+	        }else {
 			    return true;
 			}
 		}catch (MyException e) {
 			System.out.println(e.getMessage());
+			return false;
 		}
-		return true;
 
 	}
 	

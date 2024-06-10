@@ -1,6 +1,7 @@
 package com.coupons_system.controller;
 
 import java.util.ArrayList;
+import java.util.List;
 import java.util.Set;
 
 import javax.servlet.http.HttpServletRequest;
@@ -46,14 +47,20 @@ public class AdminController extends ClientController {
 	public void deleteCompany(@PathVariable("id") int companyId) {
 		adminServices.deleteCompany(companyId);
 	}
+//	@GetMapping(path="/getAllCompanies",produces = MediaType.APPLICATION_JSON_VALUE)
+//	public ArrayList<Company> getAllCompanies() {
+//	    return (ArrayList<Company>) adminServices.getAllCompanies();
+//
+//	}
 	@GetMapping(path="/getAllCompanies",produces = MediaType.APPLICATION_JSON_VALUE)
-	public ArrayList<Company> getAllCompanies() {
-	    return (ArrayList<Company>) adminServices.getAllCompanies();
-
+	public List<Company> getAllCompanies() {
+	    Iterable<Company> companies = adminServices.getAllCompanies();
+	    List<Company> companyList = new ArrayList<>();
+	    companies.forEach(companyList::add);
+	    return companyList;
 	}
 	
-	@GetMapping(path="/getOneCompany/{id}",produces = MediaType.APPLICATION_JSON_VALUE,
-			consumes = MediaType.APPLICATION_JSON_VALUE)
+	@GetMapping(path="/getOneCompany/{id}",produces = MediaType.APPLICATION_JSON_VALUE)
 	public Company getOneCompany(@PathVariable("id") int id){
 	    return adminServices.getOneCompany(id);
 	}
