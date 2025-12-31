@@ -15,7 +15,10 @@ import com.coupons_system.repositories.CouponRepository;
 import com.coupons_system.repositories.CustomerRepository;
 import com.coupons_system.utils.MyException;
 
+import org.springframework.transaction.annotation.Transactional;
+
 @Service
+@Transactional
 public class CompanyServicesimpl extends ClientServicesimpl implements CompanyServices {
 
 	private int companyId;
@@ -40,8 +43,14 @@ public class CompanyServicesimpl extends ClientServicesimpl implements CompanySe
 	public boolean login(String email, String password) {
 		try {
 
-			if(comRepo.existsByEmailAndPassword(email,password))
-				return true;
+			if(comRepo.existsByEmailAndPassword(email,password)) {
+				Company c = comRepo.findByEmail(email);
+				if (c != null) {
+					this.companyId = c.getId();
+					System.out.println("Company Logged in. ID: " + this.companyId);
+					return true;
+				}
+			}
 			else if(comRepo.existsByEmail(email)) 
 				throw new MyException("The password is not correct");
 			else
@@ -55,22 +64,28 @@ public class CompanyServicesimpl extends ClientServicesimpl implements CompanySe
 	
 	@Override
 	public void addCoupon(Coupon coupon) {	
-		Set <Coupon> coupons=getCompanyCoupons();
-		Company company=getCompanyDetails();
+		// Verify logged in
+		if (this.companyId == 0) {
+			throw new RuntimeException("You are not logged in as a company!");
+		}
 
 		try {
 			if(coupRepo.existsByCompanyIdAndTitle(companyId, coupon.getTitle()))
-				throw new MyException("The coupon title is exists in this company");
+				throw new RuntimeException("The coupon title is exists in this company");
 			else {
-				coupons.add(coupon);
-				coupon.setAmount(coupon.getAmount()-1);
-				company.setCoupons(coupons);
-				coupRepo.saveAll(coupons);
-				comRepo.save(company);
-
+				// Link the coupon to the company (Critical for Foreign Key)
+				Company company = getCompanyDetails();
+				coupon.setCompany(company);
+				
+				// Do not subtract amount on creation
+				// coupon.setAmount(coupon.getAmount()); 
+				
+				coupRepo.save(coupon);
+				System.out.println("Coupon saved successfully: " + coupon.getTitle());
 			}
-		}catch (MyException e) {
-			System.out.println(e.getMessage());
+		}catch (Exception e) {
+			System.out.println("Error adding coupon: " + e.getMessage());
+			throw new RuntimeException(e.getMessage());
 		}
 
 	}
@@ -108,7 +123,7 @@ public class CompanyServicesimpl extends ClientServicesimpl implements CompanySe
 	
 	@Override
 	public Set<Coupon> getCompanyCoupons(double maxPrice)  {
-		return coupRepo.findByPrice(maxPrice,companyId);
+		return coupRepo.findByPriceLessThanEqualAndCompanyId(maxPrice,companyId);
 	}
 
 	@Override
@@ -116,11 +131,5 @@ public class CompanyServicesimpl extends ClientServicesimpl implements CompanySe
 		return coupRepo.findByCompanyId(companyId);
 
 	}
-//	
-//	@Override
-//	public  Set<Coupon> getCompanyCoupons(int id)  {
-//		return coupRepo.findByCompanyId(id);
-//
-//	}
 }
 

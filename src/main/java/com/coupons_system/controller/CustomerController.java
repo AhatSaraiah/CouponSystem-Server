@@ -11,6 +11,7 @@ import org.springframework.web.bind.annotation.PostMapping;
 import org.springframework.web.bind.annotation.RequestBody;
 import org.springframework.web.bind.annotation.RequestMapping;
 import org.springframework.web.bind.annotation.RestController;
+import org.springframework.web.bind.annotation.CrossOrigin;
 
 import com.coupons_system.model.Category;
 import com.coupons_system.model.Coupon;
@@ -20,6 +21,7 @@ import com.coupons_system.service.CustomerServices;
 
 @RestController
 @RequestMapping("/customer")
+@CrossOrigin(origins = "http://localhost:4200")
 public class CustomerController extends ClientController{
 
    @Autowired
@@ -31,8 +33,7 @@ public class CustomerController extends ClientController{
 	}
 
     @Override
-	@GetMapping(path="/loginCustomer/{email}/{password}",produces = MediaType.APPLICATION_JSON_VALUE,
-			consumes = MediaType.APPLICATION_JSON_VALUE)
+	@GetMapping(path="/loginCustomer/{email}/{password}",produces = MediaType.APPLICATION_JSON_VALUE)
 	public boolean login(@PathVariable("email") String email,@PathVariable("password") String password) {
 		return customerServices.login(email, password);
 	}
@@ -65,6 +66,11 @@ public class CustomerController extends ClientController{
 	public Customer getCustomerDetails() {
 	    return customerServices.getCustomerDetails();
 
+	}
+	
+	@GetMapping(path="/getAllCoupons",produces = MediaType.APPLICATION_JSON_VALUE)
+	public java.util.List<Coupon> getAllCoupons() {
+	    return customerServices.getAllCoupons();
 	}
 
 }

@@ -20,11 +20,13 @@ import org.hibernate.annotations.DynamicUpdate;
 
 import javax.persistence.JoinColumn;
 
+import com.fasterxml.jackson.annotation.JsonIgnoreProperties;
 import com.fasterxml.jackson.annotation.JsonManagedReference;
 
 @DynamicUpdate
 @Entity
 @Table(name = "Customers")
+@JsonIgnoreProperties({"hibernateLazyInitializer", "handler"})
 public class Customer {
 
     private int id;
@@ -91,7 +93,7 @@ public class Customer {
     @JoinTable(name = "customers_vs_coupons", 
         joinColumns = @JoinColumn(name = "CUSTOMER_ID", updatable = false),
         inverseJoinColumns = @JoinColumn(name = "COUPON_ID", updatable = false))
-    @JsonManagedReference
+    @JsonIgnoreProperties("customers")
     public Set<Coupon> getCoupons() {
         return coupons;
     }

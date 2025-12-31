@@ -17,6 +17,7 @@ import org.springframework.web.bind.annotation.RequestBody;
 import org.springframework.web.bind.annotation.RequestMapping;
 import org.springframework.web.bind.annotation.RequestMethod;
 import org.springframework.web.bind.annotation.RestController;
+import org.springframework.web.bind.annotation.CrossOrigin;
 
 import com.coupons_system.model.Company;
 import com.coupons_system.model.Customer;
@@ -24,6 +25,7 @@ import com.coupons_system.service.AdminServices;
 
 @RestController
 @RequestMapping("/admin")
+@CrossOrigin(origins = "http://localhost:4200")
 public class AdminController extends ClientController {
 	   @Autowired
 	   private AdminServices adminServices;
@@ -73,8 +75,8 @@ public class AdminController extends ClientController {
 	public void updateCustomer(@RequestBody Customer customer) {
 		adminServices.updateCustomer(customer);
 	}
-	@DeleteMapping(path="/deleteCustomer",consumes = MediaType.APPLICATION_JSON_VALUE)
-	public void deleteCoupon(@RequestBody int customerId) {
+	@DeleteMapping(path="/deleteCustomer/{id}")
+	public void deleteCustomer(@PathVariable("id") int customerId) {
 		adminServices.deleteCustomer(customerId);
 	}
 	@GetMapping(path="/getAllCustomers",produces = MediaType.APPLICATION_JSON_VALUE)
@@ -86,16 +88,5 @@ public class AdminController extends ClientController {
 	public Customer getOneCustomer(@PathVariable int id){
 	    return adminServices.getOneCustomer(id);
 	}
-	
-//	 @PostMapping("/createUser")
-//	    public String afterUserCreation(HttpServletRequest request) {
-//	        System.out.println("start method");
-//	        String email = request.getParameter("email");
-//	        String firstName = request.getParameter("firstName");
-//	        String password = request.getParameter("password");
-//	        String confirmedPassword = request.getParameter("confirm_password");
-//	        adminServices.addCustomer(new Customer(5, firstName, "", email, password, null));
-//	        return "login";
-//	    }
 	
 }

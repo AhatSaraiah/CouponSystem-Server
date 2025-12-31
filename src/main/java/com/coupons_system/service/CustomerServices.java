@@ -16,5 +16,6 @@ public Set<Coupon> getCustomerCoupons(Category category);
 public Set<Coupon> getCustomerCoupons(double maxPrice);
 public Set<Coupon> getCustomerCoupons();
 public boolean login(String email, String password);
+public java.util.List<Coupon> getAllCoupons();
 
 }

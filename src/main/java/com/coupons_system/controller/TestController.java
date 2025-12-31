@@ -13,7 +13,7 @@ public class TestController {
 	public ModelAndView getTestData() {
 		ModelAndView mv = new ModelAndView();
 		mv.setViewName("welcome");
-		mv.getModel().put("data", "Welcome home man");
+		mv.getModel().put("data", "Welcome home");
 
 		return mv;
 	}
