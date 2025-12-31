@@ -22,11 +22,14 @@ import javax.persistence.TemporalType;
 
 import org.hibernate.annotations.DynamicUpdate;
 
+import com.fasterxml.jackson.annotation.JsonIgnore;
+import com.fasterxml.jackson.annotation.JsonIgnoreProperties;
 import com.fasterxml.jackson.annotation.JsonBackReference;
 
 @DynamicUpdate
 @Entity
 @Table(name = "Coupons")
+@JsonIgnoreProperties({"hibernateLazyInitializer", "handler"})
 public class Coupon {
 
     private int id;
@@ -69,7 +72,7 @@ public class Coupon {
     }
 
     @ManyToMany(mappedBy = "coupons", fetch = FetchType.LAZY)
-    @JsonBackReference
+    @JsonIgnore
     public Set<Customer> getCustomers() {
         return customers;
     }
@@ -79,7 +82,7 @@ public class Coupon {
 
     @ManyToOne(fetch = FetchType.LAZY, cascade = CascadeType.ALL)
     @JoinColumn(name = "COMPANY_ID", updatable = false, nullable = false)
-    @JsonBackReference
+    @JsonBackReference(value="company-coupon")
     public Company getCompany() {
         return company;
     }

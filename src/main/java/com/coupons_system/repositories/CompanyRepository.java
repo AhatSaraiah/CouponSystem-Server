@@ -11,5 +11,6 @@ public interface CompanyRepository extends JpaRepository<Company, Integer> {
 	public boolean existsByEmailAndPassword(String email, String password);
 	public boolean existsByEmailOrName(String email, String name);
 	public boolean existsByEmail(String email);
+	public Company findByEmail(String email);
 
 }

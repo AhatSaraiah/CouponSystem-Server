@@ -1,79 +1,297 @@
-# Coupon Management System
+# Coupon System - Backend
 
-The Coupon Management System is designed to manage and distribute coupons efficiently. This project focuses on the server-side implementation using the Spring Boot framework, Hibernate, and JPA.
+Spring Boot REST API for the Coupon Management System.
 
-## Features
+## 🛠️ Tech Stack
 
-- **Spring Boot**: Provides a robust framework for building Java-based applications.
-- **Hibernate**: Used for ORM (Object Relational Mapping) to interact with the database.
-- **JPA**: Java Persistence API for managing relational data in applications.
+- **Spring Boot 2.4.2** - Application framework
+- **Spring Data JPA** - Data persistence
+- **Hibernate 5.4** - ORM
+- **MySQL 8.0** - Database
+- **Maven 3.9** - Build tool
+- **HikariCP** - Connection pooling
+- **Jackson** - JSON serialization
+- **Lombok** - Boilerplate reduction
 
-## Prerequisites
+## 📦 Dependencies
 
-- **Java 11**: Ensure you have Java SE Development Kit 11 installed.
-- **Maven**: Apache Maven 3.6.3 or higher.
-- **Eclipse IDE**: Eclipse IDE for Enterprise Java and Web Developers (Photon or later).
+```xml
+<dependencies>
+    <!-- Spring Boot Starters -->
+    <dependency>
+        <groupId>org.springframework.boot</groupId>
+        <artifactId>spring-boot-starter-web</artifactId>
+    </dependency>
+    <dependency>
+        <groupId>org.springframework.boot</groupId>
+        <artifactId>spring-boot-starter-data-jpa</artifactId>
+    </dependency>
+    
+    <!-- Database -->
+    <dependency>
+        <groupId>mysql</groupId>
+        <artifactId>mysql-connector-java</artifactId>
+    </dependency>
+    
+    <!-- DevTools -->
+    <dependency>
+        <groupId>org.springframework.boot</groupId>
+        <artifactId>spring-boot-devtools</artifactId>
+    </dependency>
+</dependencies>
+```
 
-## Getting Started
+## 🏗️ Architecture
 
-### Importing the Project in Eclipse
+### **Layered Architecture**
 
-1. **Open Eclipse** and select **_File > Import_**.
-2. In the import wizard, choose **_Maven > Existing Maven Projects_**, then click **_Next_**.
-3. **Select the project root directory** where the Coupon Management System project is located.
-4. Click **_Finish_** to complete the import.
+```
+com.coupons_system/
+├── controller/          # REST API endpoints (@RestController)
+│   ├── AdminController.java
+│   ├── CompanyController.java
+│   └── CustomerController.java
+│
+├── service/            # Business logic (@Service)
+│   ├── AdminServicesimpl.java
+│   ├── CompanyServicesimpl.java
+│   └── CustomerServicesimpl.java
+│
+├── repositories/       # Data access (@Repository)
+│   ├── CompanyRepository.java
+│   ├── CustomerRepository.java
+│   └── CouponRepository.java
+│
+├── model/             # JPA entities (@Entity)
+│   ├── Company.java
+│   ├── Customer.java
+│   ├── Coupon.java
+│   └── Category.java (enum)
+│
+└── utils/             # Utilities
+    ├── DataLoader.java      # Seed data on startup
+    └── MyException.java     # Custom exception
+```
 
-### Project Configuration
+## 🗄️ Database Schema
 
-1. **Java Build Path**:
-   - Select **_Project > Properties_**.
-   - In **_Java Build Path_**, ensure that under the **_Libraries_** tab, **_Modulepath_** is set to **_JRE System Library (JavaSE-11)_**.
+### **Tables**
 
-2. **Java Compiler**:
-   - In **_Java Compiler_**, ensure that the **_Use compliance from execution environment 'JavaSE-11' on the 'Java Build Path'_** checkbox is selected.
+#### **Companies**
+```sql
+CREATE TABLE Companies (
+    id INT PRIMARY KEY AUTO_INCREMENT,
+    NAME VARCHAR(255) NOT NULL,
+    Email VARCHAR(255) NOT NULL UNIQUE,
+    PASSWORD VARCHAR(255) NOT NULL
+);
+```
 
-### Running the Project
+#### **Customers**
+```sql
+CREATE TABLE Customers (
+    ID INT PRIMARY KEY AUTO_INCREMENT,
+    FIRST_NAME VARCHAR(255) NOT NULL,
+    LAST_NAME VARCHAR(255) NOT NULL,
+    Email VARCHAR(255) NOT NULL UNIQUE,
+    PASSWORD VARCHAR(255) NOT NULL
+);
+```
 
-1. **Run Maven Build**:
-   - Right-click the project in the Project Explorer or Package Explorer and choose **_Run As > Maven Build..._**.
-   - In the **_Edit Configuration_** dialog, create a new configuration with the name `unpack`.
-   - In the **_Goals_** field, enter `dependency:unpack`.
-   - Click **_Run_** to run the goal. This will unpack the native libraries into `$USER_HOME/.arcgis`.
+#### **Coupons**
+```sql
+CREATE TABLE Coupons (
+    ID INT PRIMARY KEY AUTO_INCREMENT,
+    COMPANY_ID INT NOT NULL,
+    CATEGORY INT NOT NULL,
+    TITLE VARCHAR(255) NOT NULL,
+    DESCRIPTION TEXT,
+    START_DATE DATE NOT NULL,
+    END_DATE DATE NOT NULL,
+    AMOUNT INT NOT NULL,
+    PRICE DOUBLE NOT NULL,
+    IMAGE VARCHAR(255),
+    FOREIGN KEY (COMPANY_ID) REFERENCES Companies(id) ON DELETE CASCADE
+);
+```
 
-2. **Compile and Launch**:
-   - Again, create a new run configuration with the name `run`.
-   - In the **_Goals_** field, enter `compile exec:java`.
-   - Click **_Run_** to run the goal. The application should compile and launch the JavaFX window.
+#### **customers_vs_coupons** (Join Table)
+```sql
+CREATE TABLE customers_vs_coupons (
+    CUSTOMER_ID INT NOT NULL,
+    COUPON_ID INT NOT NULL,
+    PRIMARY KEY (CUSTOMER_ID, COUPON_ID),
+    FOREIGN KEY (CUSTOMER_ID) REFERENCES Customers(ID) ON DELETE CASCADE,
+    FOREIGN KEY (COUPON_ID) REFERENCES Coupons(ID) ON DELETE CASCADE
+);
+```
 
-## Project Structure
+## 🔧 Configuration
 
-- **src/main/java**: Contains the main application code and packages.
-- **src/main/resources**: Contains application properties and configuration files.
-- **pom.xml**: Maven configuration file for managing dependencies and build instructions.
+### **application.properties**
+```properties
+# Server
+server.port=9096
 
-## Technologies Used
+# Database
+spring.datasource.url=jdbc:mysql://db:3306/couponsystem?createDatabaseIfNotExist=true
+spring.datasource.username=${DB_USER}
+spring.datasource.password=${DB_PASSWORD}
+spring.datasource.driver-class-name=com.mysql.cj.jdbc.Driver
 
-- **Spring Boot**: Framework for building Java applications.
-- **Hibernate**: ORM framework for database operations.
-- **JPA**: API for managing relational data.
-- **Maven**: Build and dependency management tool.
+# JPA/Hibernate
+spring.jpa.hibernate.ddl-auto=update
+spring.jpa.show-sql=true
+spring.jpa.properties.hibernate.dialect=org.hibernate.dialect.MySQL8Dialect
+spring.jpa.properties.hibernate.format_sql=true
+```
 
-## Contributing
+### **Environment Variables**
+Set in `.env` file (root directory):
+```env
+DB_USER=root
+DB_PASSWORD=your_secure_password
+DB_ROOT_PASSWORD=your_root_password
+```
 
-1. Fork the repository.
-2. Create a new branch (`git checkout -b feature/YourFeature`).
-3. Commit your changes (`git commit -am 'Add new feature'`).
-4. Push to the branch (`git push origin feature/YourFeature`).
-5. Create a new Pull Request.
+## 🚀 Running the Backend
 
-## License
+### **With Docker (Recommended)**
+```bash
+# From project root
+docker-compose up -d backend
+```
 
-This project is licensed under the MIT License. See the [LICENSE](LICENSE) file for details.
+### **Locally (Development)**
+```bash
+cd backend
+mvn clean install
+mvn spring-boot:run
+```
 
-## Contact
+### **Build JAR**
+```bash
+mvn clean package
+java -jar target/coupons-system-0.0.1-SNAPSHOT.jar
+```
 
-For any questions or issues, please contact:
+## 📡 API Endpoints
 
-- Ahat Saraiah
-- [Email](mailto:ahat.saraiah@gmail.com)
-- [GitHub](https://github.com/AhatSaraiah)
+### **Admin Endpoints**
+| Method | Endpoint | Description |
+|--------|----------|-------------|
+| GET | `/admin/loginAdmin/{email}/{password}` | Admin login |
+| GET | `/admin/getAllCompanies` | Get all companies |
+| GET | `/admin/getAllCustomers` | Get all customers |
+| POST | `/admin/addCompany` | Add new company |
+| POST | `/admin/addCustomer` | Add new customer |
+| DELETE | `/admin/deleteCompany/{id}` | Delete company |
+| DELETE | `/admin/deleteCustomer/{id}` | Delete customer |
+
+### **Company Endpoints**
+| Method | Endpoint | Description |
+|--------|----------|-------------|
+| GET | `/company/loginCompany/{email}/{password}` | Company login |
+| GET | `/company/getCompanyCoupons` | Get company's coupons |
+| GET | `/company/getCompanyDetails` | Get company details |
+| POST | `/company/addCoupon` | Create new coupon |
+| PUT | `/company/updateCoupon` | Update coupon |
+| DELETE | `/company/deleteCoupon/{id}` | Delete coupon |
+
+### **Customer Endpoints**
+| Method | Endpoint | Description |
+|--------|----------|-------------|
+| GET | `/customer/loginCustomer/{email}/{password}` | Customer login |
+| GET | `/customer/getAllCoupons` | Browse all coupons |
+| GET | `/customer/getCustomerCoupons` | Get purchased coupons |
+| GET | `/customer/getCustomerDetails` | Get customer details |
+| POST | `/customer/addCouponPurchase` | Purchase a coupon |
+
+## 🔐 CORS Configuration
+
+All controllers have CORS enabled for Angular frontend:
+```java
+@CrossOrigin(origins = "http://localhost:4200")
+```
+
+## 🌱 Data Seeding
+
+The `DataLoader` component automatically seeds the database on startup if empty:
+
+- **8 Companies** (Apple, Samsung, Tesla, Starbucks, Amazon, CocaCola, Netflix, Spotify)
+- **6 Customers** (Emma Stone, Tom Holland, Robert Downey, etc.)
+
+## 🔍 Key Implementation Details
+
+### **Spring Data JPA Query Derivation**
+No manual SQL queries! Method names are automatically converted to queries:
+```java
+// Automatically generates: SELECT * FROM Coupons WHERE company_id = ?
+Set<Coupon> findByCompanyId(int companyId);
+
+// Automatically generates: SELECT * FROM Coupons WHERE price <= ? AND company_id = ?
+Set<Coupon> findByPriceLessThanEqualAndCompanyId(double price, int companyId);
+```
+
+### **JSON Circular Reference Handling**
+```java
+// Company.java
+@JsonManagedReference(value="company-coupon")
+public Set<Coupon> getCoupons() { ... }
+
+// Coupon.java
+@JsonBackReference(value="company-coupon")
+public Company getCompany() { ... }
+
+@JsonIgnore
+public Set<Customer> getCustomers() { ... }
+```
+
+### **Transaction Management**
+```java
+@Service
+@Transactional
+public class CompanyServicesimpl { ... }
+```
+
+## 🐛 Common Issues
+
+### **Port 9096 already in use**
+```bash
+# Find process
+lsof -i :9096
+# Kill process
+kill -9 <PID>
+```
+
+### **Database connection refused**
+- Ensure MySQL container is running: `docker ps`
+- Check `.env` credentials
+- Verify `application.properties` datasource URL
+
+### **Hibernate schema errors**
+- Set `spring.jpa.hibernate.ddl-auto=create` to recreate schema
+- Or manually drop database: `DROP DATABASE couponsystem;`
+
+## 📝 Development Notes
+
+- **Session Management**: Currently uses in-memory `companyId`/`customerId` (singleton service). For production, implement JWT or session-based auth.
+- **Password Security**: Passwords are stored in plain text. Use BCrypt for production.
+- **Error Handling**: Uses custom `MyException` and `RuntimeException`. Consider global exception handler.
+
+## 🚀 Future Improvements
+
+- [ ] JWT authentication
+- [ ] BCrypt password hashing
+- [ ] Global exception handler with `@ControllerAdvice`
+- [ ] Request/Response DTOs
+- [ ] Pagination for large datasets
+- [ ] API documentation with Swagger/OpenAPI
+- [ ] Unit tests with JUnit & Mockito
+- [ ] Integration tests with TestContainers
+
+---
+
+**Backend Version:** 0.0.1-SNAPSHOT  
+**Spring Boot Version:** 2.4.2  
+**Java Version:** 11

@@ -76,7 +76,7 @@ public class Company {
     }
 
     @OneToMany(mappedBy = "company", cascade = CascadeType.ALL, fetch = FetchType.LAZY)
-    @JsonManagedReference
+    @JsonManagedReference(value="company-coupon")
     public Set<Coupon> getCoupons() {
         return coupons;
     }

@@ -58,7 +58,7 @@ public class CustomerServicesimpl extends ClientServicesimpl implements Customer
 		Set <Coupon> coupons=getCustomerCoupons();
 		Customer customer=getCustomerDetails();
 		try {
-			if(coupRepo.existsByCustomerId(customerId)) 		
+			if(coupRepo.existsByCustomersId(customerId)) 		
 				throw new MyException("The coupon is exist!");
 			else if(coupon.getAmount()==0) 
 				throw new MyException("Coupons have expired !");
@@ -88,18 +88,22 @@ public class CustomerServicesimpl extends ClientServicesimpl implements Customer
 	}
 	@Override
 	public Set<Coupon> getCustomerCoupons(Category category)  {
-		return coupRepo.findAllByCustomerIdAndCategory(customerId,category);
+		return coupRepo.findByCustomersIdAndCategory(customerId,category);
 	}
 
 	@Override
 	public Set<Coupon> getCustomerCoupons(double maxPrice)  {
-		return coupRepo.findAllByMaxPrice(maxPrice,customerId);
+		return coupRepo.findAllByPriceLessThanEqualAndCustomersId(maxPrice,customerId);
 	}
 
 	@Override
 	public  Set<Coupon> getCustomerCoupons()  {
-		return coupRepo.findAllByCustomerId(customerId);
-
+		return coupRepo.findByCustomersId(customerId);
+	}
+	
+	@Override
+	public java.util.List<Coupon> getAllCoupons() {
+		return coupRepo.findAll();
 	}
 
 }
