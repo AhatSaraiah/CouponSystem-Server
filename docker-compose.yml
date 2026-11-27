@@ -1,0 +1,38 @@
+# Full stack for local development and self-hosting:
+#   docker compose up --build
+# API on http://localhost:9096, MySQL on localhost:3306.
+services:
+  db:
+    image: mysql:8.0
+    environment:
+      MYSQL_DATABASE: coupons
+      MYSQL_USER: coupons
+      MYSQL_PASSWORD: coupons
+      MYSQL_ROOT_PASSWORD: root
+    ports:
+      - '3306:3306'
+    volumes:
+      - db-data:/var/lib/mysql
+    healthcheck:
+      test: ['CMD', 'mysqladmin', 'ping', '-h', 'localhost', '-uroot', '-proot']
+      interval: 10s
+      timeout: 5s
+      retries: 10
+
+  api:
+    build: .
+    depends_on:
+      db:
+        condition: service_healthy
+    environment:
+      SPRING_DATASOURCE_URL: jdbc:mysql://db:3306/coupons?allowPublicKeyRetrieval=true&useSSL=false
+      SPRING_DATASOURCE_USERNAME: coupons
+      SPRING_DATASOURCE_PASSWORD: coupons
+      APP_CORS_ALLOWED_ORIGINS: http://localhost:4200
+      APP_ADMIN_EMAIL: admin@admin.com
+      APP_ADMIN_PASSWORD: admin
+    ports:
+      - '9096:9096'
+
+volumes:
+  db-data:

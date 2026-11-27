@@ -12,7 +12,6 @@ import org.springframework.web.bind.annotation.PutMapping;
 import org.springframework.web.bind.annotation.RequestBody;
 import org.springframework.web.bind.annotation.RequestMapping;
 import org.springframework.web.bind.annotation.RestController;
-import org.springframework.web.bind.annotation.CrossOrigin;
 
 import com.coupons_system.model.Category;
 import com.coupons_system.model.Company;
@@ -22,7 +21,6 @@ import com.coupons_system.service.CompanyServices;
 
 @RestController
 @RequestMapping("/company")
-@CrossOrigin(origins = "http://localhost:4200")
 public class CompanyController extends ClientController{
 	@Autowired
 	private CompanyServices companyServices;

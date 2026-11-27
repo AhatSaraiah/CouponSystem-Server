@@ -1,297 +1,130 @@
-# Coupon System - Backend
+# Coupon System — REST API
 
-Spring Boot REST API for the Coupon Management System.
+[![CI](https://github.com/AhatSaraiah/CouponSystem-Server/actions/workflows/ci.yml/badge.svg?branch=main)](https://github.com/AhatSaraiah/CouponSystem-Server/actions/workflows/ci.yml)
+[![Java](https://img.shields.io/badge/Java-17-orange?logo=openjdk&logoColor=white)](https://openjdk.org)
+[![Spring Boot](https://img.shields.io/badge/Spring%20Boot-3.5-6DB33F?logo=springboot&logoColor=white)](https://spring.io/projects/spring-boot)
+[![License: MIT](https://img.shields.io/badge/license-MIT-blue.svg)](LICENSE)
 
-## 🛠️ Tech Stack
+Spring Boot API behind the Coupon Management System. Three client types share one data model:
+administrators manage companies and customers, companies publish coupons, and customers buy them.
+The Angular client lives in [CouponSystemWebsite](https://github.com/AhatSaraiah/CouponSystemWebsite).
 
-- **Spring Boot 2.4.2** - Application framework
-- **Spring Data JPA** - Data persistence
-- **Hibernate 5.4** - ORM
-- **MySQL 8.0** - Database
-- **Maven 3.9** - Build tool
-- **HikariCP** - Connection pooling
-- **Jackson** - JSON serialization
-- **Lombok** - Boilerplate reduction
+## Endpoints
 
-## 📦 Dependencies
+| Role | Method | Path | Purpose |
+| --- | --- | --- | --- |
+| Admin | GET | `/admin/loginAdmin/{email}/{password}` | Admin sign-in |
+| Admin | GET | `/admin/getAllCompanies`, `/admin/getOneCompany/{id}` | Read companies |
+| Admin | POST / PUT / DELETE | `/admin/addCompany`, `/admin/updateCompany`, `/admin/deleteCompany/{id}` | Manage companies |
+| Admin | GET | `/admin/getAllCustomers`, `/admin/getOneCustomer/{id}` | Read customers |
+| Admin | POST / PUT / DELETE | `/admin/addCustomer`, `/admin/updateCustomer`, `/admin/deleteCustomer/{id}` | Manage customers |
+| Company | GET | `/company/loginCompany/{email}/{password}` | Company sign-in |
+| Company | GET | `/company/getCompanyDetails` | Signed-in company |
+| Company | GET | `/company/getCompanyCoupons`, `/company/getCompanyCoupons/{category}`, `/company/getCompanyCoupons/{maxPrice}` | Company coupons |
+| Company | POST / PUT / DELETE | `/company/addCoupon`, `/company/updateCoupon`, `/company/deleteCoupon/{id}` | Manage coupons |
+| Customer | GET | `/customer/loginCustomer/{email}/{password}` | Customer sign-in |
+| Customer | GET | `/customer/getCustomerDetails` | Signed-in customer |
+| Customer | GET | `/customer/getAllCoupons`, `/customer/getCustomerCoupons`, `/customer/getCustomerCoupons/{category}`, `/customer/getCustomerCoupons/{maxPrice}` | Browse and owned coupons |
+| Customer | POST | `/customer/addCouponPurchase` | Buy a coupon |
+| Ops | GET | `/actuator/health` | Liveness and readiness probe |
 
-```xml
-<dependencies>
-    <!-- Spring Boot Starters -->
-    <dependency>
-        <groupId>org.springframework.boot</groupId>
-        <artifactId>spring-boot-starter-web</artifactId>
-    </dependency>
-    <dependency>
-        <groupId>org.springframework.boot</groupId>
-        <artifactId>spring-boot-starter-data-jpa</artifactId>
-    </dependency>
-    
-    <!-- Database -->
-    <dependency>
-        <groupId>mysql</groupId>
-        <artifactId>mysql-connector-java</artifactId>
-    </dependency>
-    
-    <!-- DevTools -->
-    <dependency>
-        <groupId>org.springframework.boot</groupId>
-        <artifactId>spring-boot-devtools</artifactId>
-    </dependency>
-</dependencies>
-```
+## Tech stack
 
-## 🏗️ Architecture
+| Layer | Choice |
+| --- | --- |
+| Framework | Spring Boot 3.5 on Java 17 |
+| Persistence | Spring Data JPA / Hibernate 6, MySQL 8 in production, H2 in tests and the demo profile |
+| Web | Spring MVC, Jackson |
+| Ops | Spring Boot Actuator health probes, Docker multi-stage image, GitHub Actions |
+| Tests | JUnit 5, MockMvc integration tests |
 
-### **Layered Architecture**
+## Project layout
 
 ```
-com.coupons_system/
-├── controller/          # REST API endpoints (@RestController)
-│   ├── AdminController.java
-│   ├── CompanyController.java
-│   └── CustomerController.java
-│
-├── service/            # Business logic (@Service)
-│   ├── AdminServicesimpl.java
-│   ├── CompanyServicesimpl.java
-│   └── CustomerServicesimpl.java
-│
-├── repositories/       # Data access (@Repository)
-│   ├── CompanyRepository.java
-│   ├── CustomerRepository.java
-│   └── CouponRepository.java
-│
-├── model/             # JPA entities (@Entity)
-│   ├── Company.java
-│   ├── Customer.java
-│   ├── Coupon.java
-│   └── Category.java (enum)
-│
-└── utils/             # Utilities
-    ├── DataLoader.java      # Seed data on startup
-    └── MyException.java     # Custom exception
+src/main/java/com/coupons_system/
+├── config/          # WebConfig: CORS from app.cors.allowed-origins
+├── controller/      # Admin, Company, Customer and shared Client controllers
+├── job/             # CouponExpirationDailyJob: expires coupons daily
+├── login/           # ClientType and LoginManager
+├── model/           # Company, Customer, Coupon, Category
+├── repositories/    # Spring Data repositories
+├── service/         # Service interfaces and implementations per role
+└── utils/           # MyException and the DataLoader that seeds sample data
 ```
 
-## 🗄️ Database Schema
+## Run it
 
-### **Tables**
+### Demo profile (no database needed)
 
-#### **Companies**
-```sql
-CREATE TABLE Companies (
-    id INT PRIMARY KEY AUTO_INCREMENT,
-    NAME VARCHAR(255) NOT NULL,
-    Email VARCHAR(255) NOT NULL UNIQUE,
-    PASSWORD VARCHAR(255) NOT NULL
-);
-```
-
-#### **Customers**
-```sql
-CREATE TABLE Customers (
-    ID INT PRIMARY KEY AUTO_INCREMENT,
-    FIRST_NAME VARCHAR(255) NOT NULL,
-    LAST_NAME VARCHAR(255) NOT NULL,
-    Email VARCHAR(255) NOT NULL UNIQUE,
-    PASSWORD VARCHAR(255) NOT NULL
-);
-```
-
-#### **Coupons**
-```sql
-CREATE TABLE Coupons (
-    ID INT PRIMARY KEY AUTO_INCREMENT,
-    COMPANY_ID INT NOT NULL,
-    CATEGORY INT NOT NULL,
-    TITLE VARCHAR(255) NOT NULL,
-    DESCRIPTION TEXT,
-    START_DATE DATE NOT NULL,
-    END_DATE DATE NOT NULL,
-    AMOUNT INT NOT NULL,
-    PRICE DOUBLE NOT NULL,
-    IMAGE VARCHAR(255),
-    FOREIGN KEY (COMPANY_ID) REFERENCES Companies(id) ON DELETE CASCADE
-);
-```
-
-#### **customers_vs_coupons** (Join Table)
-```sql
-CREATE TABLE customers_vs_coupons (
-    CUSTOMER_ID INT NOT NULL,
-    COUPON_ID INT NOT NULL,
-    PRIMARY KEY (CUSTOMER_ID, COUPON_ID),
-    FOREIGN KEY (CUSTOMER_ID) REFERENCES Customers(ID) ON DELETE CASCADE,
-    FOREIGN KEY (COUPON_ID) REFERENCES Coupons(ID) ON DELETE CASCADE
-);
-```
-
-## 🔧 Configuration
-
-### **application.properties**
-```properties
-# Server
-server.port=9096
-
-# Database
-spring.datasource.url=jdbc:mysql://db:3306/couponsystem?createDatabaseIfNotExist=true
-spring.datasource.username=${DB_USER}
-spring.datasource.password=${DB_PASSWORD}
-spring.datasource.driver-class-name=com.mysql.cj.jdbc.Driver
-
-# JPA/Hibernate
-spring.jpa.hibernate.ddl-auto=update
-spring.jpa.show-sql=true
-spring.jpa.properties.hibernate.dialect=org.hibernate.dialect.MySQL8Dialect
-spring.jpa.properties.hibernate.format_sql=true
-```
-
-### **Environment Variables**
-Set in `.env` file (root directory):
-```env
-DB_USER=root
-DB_PASSWORD=your_secure_password
-DB_ROOT_PASSWORD=your_root_password
-```
-
-## 🚀 Running the Backend
-
-### **With Docker (Recommended)**
 ```bash
-# From project root
-docker-compose up -d backend
+./mvnw spring-boot:run -Dspring-boot.run.profiles=demo
+# API on http://localhost:9096, seeded with sample companies and customers
 ```
 
-### **Locally (Development)**
+### With MySQL
+
 ```bash
-cd backend
-mvn clean install
-mvn spring-boot:run
+docker compose up --build          # API + MySQL 8
 ```
 
-### **Build JAR**
+Or point the app at your own database:
+
 ```bash
-mvn clean package
-java -jar target/coupons-system-0.0.1-SNAPSHOT.jar
+export SPRING_DATASOURCE_URL="jdbc:mysql://localhost:3306/coupons?allowPublicKeyRetrieval=true&useSSL=false"
+export SPRING_DATASOURCE_USERNAME=coupons
+export SPRING_DATASOURCE_PASSWORD=coupons
+./mvnw spring-boot:run
 ```
 
-## 📡 API Endpoints
+The admin account defaults to `admin@admin.com` / `admin`; every seeded company and customer
+password is visible in `DataLoader`.
 
-### **Admin Endpoints**
-| Method | Endpoint | Description |
-|--------|----------|-------------|
-| GET | `/admin/loginAdmin/{email}/{password}` | Admin login |
-| GET | `/admin/getAllCompanies` | Get all companies |
-| GET | `/admin/getAllCustomers` | Get all customers |
-| POST | `/admin/addCompany` | Add new company |
-| POST | `/admin/addCustomer` | Add new customer |
-| DELETE | `/admin/deleteCompany/{id}` | Delete company |
-| DELETE | `/admin/deleteCustomer/{id}` | Delete customer |
+## Configuration
 
-### **Company Endpoints**
-| Method | Endpoint | Description |
-|--------|----------|-------------|
-| GET | `/company/loginCompany/{email}/{password}` | Company login |
-| GET | `/company/getCompanyCoupons` | Get company's coupons |
-| GET | `/company/getCompanyDetails` | Get company details |
-| POST | `/company/addCoupon` | Create new coupon |
-| PUT | `/company/updateCoupon` | Update coupon |
-| DELETE | `/company/deleteCoupon/{id}` | Delete coupon |
+| Variable | Default | Purpose |
+| --- | --- | --- |
+| `SPRING_DATASOURCE_URL` | none (required outside the demo profile) | JDBC URL |
+| `SPRING_DATASOURCE_USERNAME` / `SPRING_DATASOURCE_PASSWORD` | none | Database credentials |
+| `PORT` | `9096` | HTTP port; hosting platforms inject it |
+| `APP_CORS_ALLOWED_ORIGINS` | `http://localhost:4200` | Comma-separated origins allowed to call the API |
+| `APP_ADMIN_EMAIL` / `APP_ADMIN_PASSWORD` | `admin@admin.com` / `admin` | Administrator account |
+| `SPRING_PROFILES_ACTIVE` | none | Set to `demo` for the in-memory profile |
+| `SPRING_JPA_SHOW_SQL` | `false` | Log SQL statements |
 
-### **Customer Endpoints**
-| Method | Endpoint | Description |
-|--------|----------|-------------|
-| GET | `/customer/loginCustomer/{email}/{password}` | Customer login |
-| GET | `/customer/getAllCoupons` | Browse all coupons |
-| GET | `/customer/getCustomerCoupons` | Get purchased coupons |
-| GET | `/customer/getCustomerDetails` | Get customer details |
-| POST | `/customer/addCouponPurchase` | Purchase a coupon |
+## Deployment
 
-## 🔐 CORS Configuration
+The repository ships everything needed to run the API as a container:
 
-All controllers have CORS enabled for Angular frontend:
-```java
-@CrossOrigin(origins = "http://localhost:4200")
-```
+- **Docker** — `Dockerfile` builds a Java 17 image, runs as a non-root user and exposes a
+  `/actuator/health` healthcheck.
+- **Render** — `render.yaml` is a blueprint: New > Blueprint, pick this repository, and set
+  `APP_ADMIN_PASSWORD` plus `APP_CORS_ALLOWED_ORIGINS` (the frontend URL) when prompted. It starts on
+  the `demo` profile, so it runs without a database.
+- **Any container host** — build the image and provide the environment variables above; the app reads
+  `PORT` automatically.
 
-## 🌱 Data Seeding
+Point the Angular client at the deployed API by setting `apiBaseUrl` in
+`src/environments/environment.prod.ts`.
 
-The `DataLoader` component automatically seeds the database on startup if empty:
+## Tests
 
-- **8 Companies** (Apple, Samsung, Tesla, Starbucks, Amazon, CocaCola, Netflix, Spotify)
-- **6 Customers** (Emma Stone, Tom Holland, Robert Downey, etc.)
-
-## 🔍 Key Implementation Details
-
-### **Spring Data JPA Query Derivation**
-No manual SQL queries! Method names are automatically converted to queries:
-```java
-// Automatically generates: SELECT * FROM Coupons WHERE company_id = ?
-Set<Coupon> findByCompanyId(int companyId);
-
-// Automatically generates: SELECT * FROM Coupons WHERE price <= ? AND company_id = ?
-Set<Coupon> findByPriceLessThanEqualAndCompanyId(double price, int companyId);
-```
-
-### **JSON Circular Reference Handling**
-```java
-// Company.java
-@JsonManagedReference(value="company-coupon")
-public Set<Coupon> getCoupons() { ... }
-
-// Coupon.java
-@JsonBackReference(value="company-coupon")
-public Company getCompany() { ... }
-
-@JsonIgnore
-public Set<Customer> getCustomers() { ... }
-```
-
-### **Transaction Management**
-```java
-@Service
-@Transactional
-public class CompanyServicesimpl { ... }
-```
-
-## 🐛 Common Issues
-
-### **Port 9096 already in use**
 ```bash
-# Find process
-lsof -i :9096
-# Kill process
-kill -9 <PID>
+./mvnw test
 ```
 
-### **Database connection refused**
-- Ensure MySQL container is running: `docker ps`
-- Check `.env` credentials
-- Verify `application.properties` datasource URL
+Seven tests cover the application context, the admin and company login endpoints, the CORS response
+for the Angular dev server, the actuator health probe, and the guarantee that passwords are never
+serialized into API responses.
 
-### **Hibernate schema errors**
-- Set `spring.jpa.hibernate.ddl-auto=create` to recreate schema
-- Or manually drop database: `DROP DATABASE couponsystem;`
+## Known limitations
 
-## 📝 Development Notes
+- **Credentials in the URL path.** Sign-in is `GET /{role}/login.../{email}/{password}`, so passwords
+  travel in the URL and end up in access logs. Moving to `POST` with a JSON body and a token is the
+  next change, and the Angular client is already isolated behind one method per role.
+- **Plain-text passwords.** Passwords are stored as-is; BCrypt hashing is the planned fix.
+- **No authentication token.** The API trusts the caller once a login returns `true`; every endpoint is
+  reachable without a session.
 
-- **Session Management**: Currently uses in-memory `companyId`/`customerId` (singleton service). For production, implement JWT or session-based auth.
-- **Password Security**: Passwords are stored in plain text. Use BCrypt for production.
-- **Error Handling**: Uses custom `MyException` and `RuntimeException`. Consider global exception handler.
+## License
 
-## 🚀 Future Improvements
-
-- [ ] JWT authentication
-- [ ] BCrypt password hashing
-- [ ] Global exception handler with `@ControllerAdvice`
-- [ ] Request/Response DTOs
-- [ ] Pagination for large datasets
-- [ ] API documentation with Swagger/OpenAPI
-- [ ] Unit tests with JUnit & Mockito
-- [ ] Integration tests with TestContainers
-
----
-
-**Backend Version:** 0.0.1-SNAPSHOT  
-**Spring Boot Version:** 2.4.2  
-**Java Version:** 11
+[MIT](LICENSE) © Ahat Saraiah

@@ -5,6 +5,7 @@ import java.util.Set;
 
 
 import org.springframework.beans.factory.annotation.Autowired;
+import org.springframework.beans.factory.annotation.Value;
 import org.springframework.stereotype.Service;
 
 import com.coupons_system.model.Company;
@@ -25,6 +26,13 @@ public class AdminServicesimpl extends ClientServicesimpl implements  AdminServi
 		private CustomerRepository custRepo;
 	    @Autowired
 		private CouponRepository coupRepo;
+
+		/** Administrator credentials, overridable through APP_ADMIN_EMAIL / APP_ADMIN_PASSWORD. */
+		@Value("${app.admin.email:admin@admin.com}")
+		private String adminEmail;
+
+		@Value("${app.admin.password:admin}")
+		private String adminPassword;
 	
 
 		public AdminServicesimpl(CompanyRepository comRepo,CustomerRepository custRepo,CouponRepository coupRepo) {
@@ -39,7 +47,7 @@ public class AdminServicesimpl extends ClientServicesimpl implements  AdminServi
 	@Override
 	public boolean login(String email, String password) {
 		try {
-	        if (!email.equals("admin@admin.com") || !password.equals("admin")) {
+	        if (!email.equals(adminEmail) || !password.equals(adminPassword)) {
 				throw new MyException("The email or password  are not correct");
 	        }else {
 			    return true;

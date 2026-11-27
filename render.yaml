@@ -1,0 +1,28 @@
+# Render blueprint: one click turns this repository into a running API.
+#
+#   1. Push this file to the repository (done).
+#   2. In Render: New > Blueprint, pick this repository, apply.
+#   3. Set APP_ADMIN_PASSWORD and APP_CORS_ALLOWED_ORIGINS when prompted.
+#
+# The free plan runs the demo profile, which uses an in-memory H2 database, so no
+# external MySQL is required. Switch SPRING_PROFILES_ACTIVE to "prod" (or remove it)
+# and point SPRING_DATASOURCE_* at a managed MySQL instance for real data.
+services:
+  - type: web
+    name: coupon-system-api
+    runtime: docker
+    plan: free
+    region: frankfurt
+    dockerfilePath: ./Dockerfile
+    healthCheckPath: /actuator/health
+    envVars:
+      - key: SPRING_PROFILES_ACTIVE
+        value: demo
+      - key: APP_ADMIN_EMAIL
+        value: admin@admin.com
+      - key: APP_ADMIN_PASSWORD
+        sync: false
+      - key: APP_CORS_ALLOWED_ORIGINS
+        sync: false
+      - key: JAVA_TOOL_OPTIONS
+        value: -XX:MaxRAMPercentage=75
