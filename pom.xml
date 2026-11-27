@@ -60,7 +60,7 @@
 			<plugin>
 				<groupId>org.codehaus.mojo</groupId>
 				<artifactId>exec-maven-plugin</artifactId>
-				<version>3.3.0</version>
+				<version>3.7.0</version>
 				<configuration>
 					<mainClass>com.coupons_system.CouponSystemApplication</mainClass> <!-- Replace with your main class -->
 				</configuration>
