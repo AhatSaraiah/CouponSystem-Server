@@ -11,7 +11,7 @@ COPY src ./src
 RUN ./mvnw -B -q clean package -DskipTests
 
 # Run stage
-FROM eclipse-temurin:17-jre
+FROM eclipse-temurin:25-jre
 WORKDIR /app
 
 # curl powers the container healthcheck below
